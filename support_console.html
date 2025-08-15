@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resolution Console</title>
+  <meta name="description" content="De-branded support console demo with web3 animation."/>
+  <link rel="shortcut icon" href="cri-shopify.png" type="image/x-icon">
+  <style>
+    :root{
+      --bg1:#0f1226; /* deep indigo */
+      --bg2:#101a3a; /* navy */
+      --accent:#2ee7ff; /* cyan */
+      --accent-2:#7cffb2; /* mint */
+      --good:#3ddc84; /* success */
+      --warn:#ffd166; /* warning */
+      --text:#e9ecf1;
+      --muted:#a7b0c3;
+      --card:#111826cc; /* glass */
+      --stroke:#ffffff22;
+      --btn-green:#22c55e;
+      --btn-blue:#3b82f6;
+      --btn-red:#ef4444;
+      --radius:18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    html,body{height:100%;}
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 10% 10%, #1a1f49 0%, transparent 60%),
+                  radial-gradient(1000px 600px at 90% 20%, #0a2a3a 0%, transparent 50%),
+                  linear-gradient(120deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+    img {
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+    }
+
+    /* Animated background gradient sheen */
+    .bg-anim{
+      position:fixed; inset:0; pointer-events:none; z-index:-1;
+      background: conic-gradient(from 180deg at 50% 50%, #0ff3, #0f05 20%, #fff1 30%, #0ff3 45%, #fff0 60%, #0ff2 80%, #fff0);
+      filter: blur(90px) saturate(120%);
+      animation: spin 16s linear infinite;
+      opacity:.35;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Particles canvas behind content */
+    #stars{position:fixed; inset:0; z-index:-1}
+
+    .wrap{min-height:100%; display:grid; place-items:center; padding:48px 16px}
+
+    .card{width:min(560px, 92vw); background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);}
+
+    .card .inner{padding:28px}
+
+    .brand-row{display:flex; align-items:center; gap:12px; margin-bottom:10px}
+    .brand-logo{width:26px; height:26px; display:grid; place-items:center; border-radius:8px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#031a21; font-weight:900; box-shadow:inset 0 0 0 2px #fff8}
+    .brand-dot{width:7px; height:7px; border-radius:999px; background:var(--good); box-shadow:0 0 0 3px rgba(61,220,132,.15)}
+
+    h1{font-size:22px; margin:0}
+    p.sub{color:var(--muted); margin:6px 0 0 0; font-size:14px}
+
+    /* Loading state */
+    .loading{display:grid; place-items:center; padding:40px 28px}
+    .progress{width:88%; height:8px; background:#ffffff14; border-radius:999px; overflow:hidden; border:1px solid var(--stroke); margin:18px auto}
+    .bar{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); box-shadow:0 0 20px #2ee7ff66}
+    .checks{display:flex; gap:10px; flex-direction:column; align-items:center; color:var(--muted); font-size:14px; margin-top:12px}
+    .tiny{font-size:12px; opacity:.7; text-align:center}
+
+    /* Advisor widget */
+    .advisor{display:grid; grid-template-columns: 1fr; gap:14px; background:#ffffff05; border:1px dashed var(--stroke); border-radius:14px; padding:16px; margin-top:16px}
+
+    .profile{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:center}
+    .avatar{width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg, #24334f, #131d36); border:1px solid var(--stroke); display:grid; place-items:center; font-weight:800; font-size:20px; color:#dbe7ff}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--stroke); background:#0f172a99}
+    .dot{width:8px; height:8px; border-radius:999px; background:var(--good)}
+
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .tile{padding:12px; background:#ffffff07; border:1px solid var(--stroke); border-radius:12px}
+    .tile .t{font-size:12px; color:var(--muted)}
+    .tile .v{font-size:14px; margin-top:6px}
+
+    /* Actions */
+    .actions{display:grid; grid-template-columns:1fr; gap:10px; margin-top:14px}
+    .btn{appearance:none; display:flex; align-items:center; justify-content:center; gap:10px; padding:12px 14px; border-radius:12px; border:1px solid var(--stroke); background:#ffffff08; color:var(--text); font-weight:600; cursor:pointer; transition: transform .08s ease, filter .2s ease; text-decoration:none}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{background: linear-gradient(135deg, var(--btn-green), #34e1b3);}
+    .btn.secondary{background: linear-gradient(135deg, var(--btn-blue), #60a5fa);} 
+    .btn.danger{background: linear-gradient(135deg, var(--btn-red), #f87171);} 
+    .btn .icon{width:18px; height:18px}
+
+    .footer-note{margin-top:10px; text-align:center; font-size:12px; color:var(--muted)}
+
+    /* small carousel dots */
+    .dots{display:flex; justify-content:center; gap:6px; margin-top:10px}
+    .dots span{width:6px; height:6px; background:#ffffff33; border-radius:999px}
+    .dots span.active{background:#fff}
+
+    /* Responsive */
+    @media(min-width:600px){
+      .actions{grid-template-columns:repeat(3,1fr)}
+    }
+
+    /* Subtle tilt hover */
+    .tilt{transform-style:preserve-3d; will-change:transform}
+    .tilt > *{transform: translateZ(20px)}
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="bg-anim"></div>
+  <main class="wrap">
+    <!-- Loading Card -->
+    <section id="loading-card" class="card tilt" aria-live="polite">
+      <div class="inner loading">
+        <div class="brand-row" style="justify-content:center">
+          <!-- <div class="brand-logo" aria-hidden="true">S</div> -->
+          <img src="shopify-logo.jpg" alt="">
+        </div>
+        <h1>Compliance Case Review</h1>
+        <p class="sub">Connecting you with a dedicated support advisor</p>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="bar" id="bar"></div>
+        </div>
+        <div id="percent" style="font-variant-numeric:tabular-nums">0%</div>
+        <div class="checks">
+          <div>🛡️ Verifying compliance details</div>
+          <div>🔎 Reviewing case history</div>
+          <div>👤 Locating available advisor</div>
+          <div class="tiny">Optimizing connection…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Console Card -->
+    <section id="console-card" class="card tilt" hidden>
+      <div class="inner">
+        <div class="brand-row">
+          <img src="shopify-logo.jpg" alt="">
+          <!-- <div class="brand-logo" title="Generic Support">
+          </div> -->
+          <div class="brand-dot" title="Connected"></div>
+          <div style="margin-left:6px; color:var(--muted); font-size:13px">Connected</div>
+        </div>
+        <h1>Resolution Console</h1>
+        <p class="sub">Ready to assist with your case. Contact your preferred specialist.</p>
+
+        <div class="advisor">
+          <div class="profile">
+            <div class="avatar" aria-hidden="true">G</div>
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap">
+                <strong>Gof Grek</strong>
+                <span class="badge"><span class="dot"></span> Active</span>
+                <span class="badge">Advisor</span>
+                <span class="badge">5+ years</span>
+              </div>
+              <div class="sub" style="margin-top:4px">Customer Support Advisor</div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="tile">
+              <div class="t">Ticket No.</div>
+              <div class="v">#GF-NC4141</div>
+            </div>
+            <div class="tile">
+              <div class="t">Partner ID</div>
+              <div class="v">3855889</div>
+            </div>
+            <div class="tile">
+              <div class="t">Tasks Completed</div>
+              <div class="v">312</div>
+            </div>
+            <div class="tile">
+              <div class="t">Status</div>
+              <div class="v" style="color:var(--good)">Active</div>
+            </div>
+          </div>
+
+          <div class="dots" aria-hidden="true">
+            <span></span><span class="active"></span><span></span>
+          </div>
+
+          <div class="actions">
+            <a class="btn primary" href="https://wa.me/2347040702916" onclick="toast('Starting secure chat…')" role="button" aria-label="Connect via messaging">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 5.5A3.5 3.5 0 0 1 5.5 2h13A3.5 3.5 0 0 1 22 5.5v7A3.5 3.5 0 0 1 18.5 16H9l-5 5v-5.5A3.5 3.5 0 0 1 2 12.5v-7Z"/></svg>
+              Connect via WhatsApp
+            </a>
+            <a class="btn secondary" href="https://t.me/Gofgreksolutions" onclick="toast('Starting secure chat…')" role="button" aria-label="Open ticket">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a3 3 0 0 1 3 3v2h4a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4V5a3 3 0 0 1 3-3Zm-1 9v6h2v-6h-2Zm0-4v2h2V7h-2Z"/></svg>
+              Connect via Tellegram
+            </a>
+            <a class="btn danger" href="mailto:gofgreksolutions@gmail.com" role="button" aria-label="Email support">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm9 7L4.5 7.5h15L12 12Z"/></svg>
+              Email Support
+            </a>
+          </div>
+          <div class="footer-note">This connection uses encryption for your protection.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" style="position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:#0b1224ee; border:1px solid var(--stroke); color:var(--text); padding:10px 14px; border-radius:12px; box-shadow:var(--shadow); opacity:0; transition: all .25s ease; pointer-events:none">Toast</div>
+
+  <script>
+    // Particle stars background
+    const starsCanvas = document.getElementById('stars');
+    const ctx = starsCanvas.getContext('2d');
+    let w, h, stars=[];
+    function resize(){ w = starsCanvas.width = window.innerWidth; h = starsCanvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    function makeStars(){
+      const count = Math.min(160, Math.floor(w*h/12000));
+      stars = Array.from({length:count}, () => ({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.3+0.2, s: Math.random()*0.6+0.2}));
+    }
+    makeStars();
+    function loop(){
+      ctx.clearRect(0,0,w,h);
+      ctx.globalAlpha = .85;
+      for(const p of stars){
+        p.y += p.s; if(p.y>h){ p.y=0; p.x=Math.random()*w }
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill();
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // Loading -> Console
+    const bar = document.getElementById('bar');
+    const percent = document.getElementById('percent');
+    const loadingCard = document.getElementById('loading-card');
+    const consoleCard = document.getElementById('console-card');
+    let p = 0; const timer = setInterval(()=>{ p = Math.min(100, p + Math.random()*8 + 2); bar.style.width = p + '%'; percent.textContent = Math.round(p) + '%';
+      loadingCard.querySelector('.progress').setAttribute('aria-valuenow', Math.round(p));
+      if(p>=100){ clearInterval(timer); setTimeout(()=>{ loadingCard.hidden = true; consoleCard.hidden = false; }, 250) }
+    }, 140);
+
+    // Simple toast
+    function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity = 1; t.style.transform = 'translateX(-50%) translateY(0)'; setTimeout(()=>{ t.style.opacity = 0; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 1600); }
+    window.toast = toast;
+
+    // Tilt effect (vanilla, no deps)
+    for(const el of document.querySelectorAll('.tilt')){
+      el.addEventListener('mousemove', (e)=>{
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left)/r.width; // 0..1
+        const y = (e.clientY - r.top)/r.height; // 0..1
+        const rx = (0.5 - y) * 8; // tilt range
+        const ry = (x - 0.5) * 12;
+        el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      });
+      el.addEventListener('mouseleave', ()=>{ el.style.transform = 'perspective(900px) rotateX(0) rotateY(0)'; });
+      el.addEventListener('touchend', ()=>{ el.style.transform = 'perspective(900px) rotateX(0) rotateY(0)'; });
+    }
+  </script>
+</body>
+</html>
